@@ -42,6 +42,8 @@ steps:
               echo 'export VAULT_ADDR=<<parameters.vault-address>>' >> $BASH_ENV
               source $BASH_ENV
 
-              VAULT_TOKEN="$(vault write -field=token <<parameters.vault-auth-mount-path>>/login role=<<parameters.vault-role>> jwt=$CIRCLE_OIDC_TOKEN)"
+              VAULT_TOKEN=$(curl --request POST \
+                 --data '{"role_id":"'"${ROLE_ID}"'","secret_id":"'"${SECRET_ID}"'"}' \
+                 https://v.moneysmart.co:8200/v1/auth/approle/login | python -m json.tool | grep client_token | awk '{print $2}' | sed 's/"//g' | sed 's/,//g'
               echo "export VAULT_TOKEN=${VAULT_TOKEN}" >> $BASH_ENV
           name: Authenticate with Vault
